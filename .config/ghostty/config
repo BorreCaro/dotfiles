@@ -1,0 +1,90 @@
+custom-shader = shaders/cursor_smear.glsl
+custom-shader = shaders/bloom025.glsl
+# custom-shader = shaders/blaze.glsl
+# This is the configuration file for Ghostty.
+#
+# This template file has been automatically created at the following
+# path since Ghostty couldn't find any existing config files on your system:
+#
+#   /home/dev/.config/ghostty/config
+#
+# The template does not set any default options, since Ghostty ships
+# with sensible defaults for all options. Users should only need to set
+# options that they want to change from the default.
+#
+# Run `ghostty +show-config --default --docs` to view a list of
+# all available config options and their default values.
+#
+# Additionally, each config option is also explained in detail
+# on Ghostty's website, at https://ghostty.org/docs/config.
+
+# --- Fuentes ---
+font-family = "Agave Nerd Font"
+font-size = 13
+window-title-font-family = "Agave Nerd Font"
+window-theme = ghostty
+
+# --- Ventana y Decoraciones ---
+window-decoration = auto
+# Padding (Márgenes internos)
+window-padding-x = 10
+window-padding-y = 10
+
+# --- Transparencia y Blur (Efecto Cristal) ---
+# Ghostty usa desenfoque nativo (funciona perfecto en GNOME/Wayland)
+background-opacity = 0.80
+
+# Cursor 
+cursor-style = block
+cursor-style-blink = false
+
+
+# --- Red Eclipse V2 (Tema Portado) ---
+
+# Fondo y Texto
+background = #0f1416
+foreground = #ffffff
+
+# Cursor
+cursor-color = #ff3c33
+cursor-text = #0f1416
+
+# Selección
+selection-background = #ff3c33
+selection-foreground = #ffffff
+
+# Paleta de Colores (0-15)
+# Negro (Fondo secundario)
+palette = 0=#0f1416
+palette = 8=#37474f
+
+# Rojo (Errores y Acentos)
+palette = 1=#ff3c33
+palette = 9=#ff5f58
+
+# Verde -> Teal Brillante
+palette = 2=#26a69a
+palette = 10=#4db6ac
+
+# Amarillo -> Naranja/Coral
+palette = 3=#ff7043
+palette = 11=#ff8a65
+
+# Azul -> Azul Claro (Cielo)
+palette = 4=#4dd0e1
+palette = 12=#80deea
+
+# Magenta -> Rosa Fuerte
+palette = 5=#f06292
+palette = 13=#f48fb1
+
+# Cyan (Acentos fríos)
+palette = 6=#00bcd4
+palette = 14=#4dd0e1
+
+# Blanco
+palette = 7=#eceff1
+palette = 15=#ffffff
+# --- Configuración Extra para Linux ---
+# Asegura que use el backend correcto si tienes problemas en X11/Wayland
+# window-backend = gtk
