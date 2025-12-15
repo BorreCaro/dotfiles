@@ -5,10 +5,10 @@ set -e # Detener el script si hay errores
 echo ">>> Activando sudo..."
 sudo echo "Sudo activado correctamente."
 
-# Directorio del script para encontrar el zip del cursor
+# Directorio del script para encontrar archivos locales (zip, configs)
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
-echo ">>> Iniciando instalación ULTIMATE v7 (Fedora + Ghostty + Nemo + Orchis + Tela + Cursor Fix)..."
+echo ">>> Iniciando instalación ULTIMATE v8 (Fedora + Ghostty + Nemo + Orchis + Tela + P10K Fix)..."
 
 # ===============================================
 # 1. ACTUALIZACIÓN Y PAQUETES DE SISTEMA
@@ -20,7 +20,7 @@ sudo dnf update -y
 echo "    -> Instalando Development Tools..."
 sudo dnf group install -y development-tools
 
-# Instalamos dependencias específicas (incluyendo fix para Treesitter)
+# Instalamos dependencias específicas
 echo "    -> Instalando dependencias del sistema..."
 sudo dnf install -y \
   git cmake \
@@ -59,7 +59,7 @@ sudo dnf install -y \
   lazygit \
   bat \
   tldr \
-  procps-ng # Asegura tener pkill
+  procps-ng
 
 # ===============================================
 # 3. APPS FLATPAK Y EXTENSIONES
@@ -83,7 +83,6 @@ echo "    -> Extensión instalada. Recuerda habilitarla tras reiniciar."
 # 3.5. PREPARACIÓN FIREFOX (Perfil)
 # ===============================================
 echo ">>> 3.5. Inicializando Firefox para generar perfiles..."
-# Abrimos Firefox en background para crear la carpeta de perfil
 nohup firefox > /dev/null 2>&1 &
 echo "    -> Firefox iniciado, esperando 10 segundos..."
 sleep 10
@@ -102,30 +101,22 @@ mkdir -p "$THEME_TEMP"
 echo "    -> Clonando Orchis GTK Theme..."
 git clone https://github.com/vinceliuice/Orchis-theme.git "$THEME_TEMP/Orchis-theme"
 pushd "$THEME_TEMP/Orchis-theme" > /dev/null
-  
-  # Instalación del tema GTK
   echo "    -> Aplicando tema Orchis..."
   ./install.sh -i apple -t red -c dark --tweaks macos dock
 
-  # Configuración de Flatpak
-  echo "    -> Aplicando overrides de Flatpak para temas..."
+  echo "    -> Aplicando overrides de Flatpak..."
   sudo flatpak override --filesystem=xdg-config/gtk-3.0
   sudo flatpak override --filesystem=xdg-config/gtk-4.0
 
-  # Configuración de Firefox
   echo "    -> Configurando tema en Firefox..."
-  # Buscar carpetas de perfil que contengan 'default'
   for profile in $HOME/.mozilla/firefox/*default*; do
     if [ -d "$profile" ]; then
       echo "       Aplicando en perfil: $profile"
       mkdir -p "$profile/chrome"
-      # Copiar contenido de chrome
       cp -r src/firefox/chrome/* "$profile/chrome/"
-      # Copiar user.js
       cp src/firefox/configuration/user.js "$profile/"
     fi
   done
-
 popd > /dev/null
 
 # --- Tela Icon Theme ---
@@ -139,7 +130,7 @@ popd > /dev/null
 rm -rf "$THEME_TEMP"
 
 # ===============================================
-# 5. CURSOR MOGA-CANDY-BLACK (CORREGIDO)
+# 5. CURSOR MOGA-CANDY-BLACK
 # ===============================================
 echo ">>> 5. Instalando Cursor Moga-Candy-Black..."
 CURSOR_ZIP="$SCRIPT_DIR/Moga-Candy-Black.zip"
@@ -148,38 +139,33 @@ mkdir -p "$ICON_DIR"
 
 if [ -f "$CURSOR_ZIP" ]; then
   echo "    -> Descomprimiendo cursor en temporal..."
-  # Usamos carpeta temporal para manejar la anidación
   TEMP_CURSOR="/tmp/moga_cursor_temp"
   rm -rf "$TEMP_CURSOR"
   mkdir -p "$TEMP_CURSOR"
   
   unzip -o "$CURSOR_ZIP" -d "$TEMP_CURSOR" > /dev/null
   
-  # La carpeta correcta está anidada: Moga-Candy-Black/Moga-Candy-Black
   TARGET_DIR="$TEMP_CURSOR/Moga-Candy-Black/Moga-Candy-Black"
-  
   if [ -d "$TARGET_DIR" ]; then
       echo "    -> Moviendo carpeta correcta a $ICON_DIR..."
-      rm -rf "$ICON_DIR/Moga-Candy-Black" # Limpieza preventiva
+      rm -rf "$ICON_DIR/Moga-Candy-Black"
       mv "$TARGET_DIR" "$ICON_DIR/"
   else
-      echo "⚠️  Estructura inesperada. Moviendo carpeta raíz..."
+      echo "⚠️  Estructura inesperada. Moviendo raíz..."
       rm -rf "$ICON_DIR/Moga-Candy-Black"
       mv "$TEMP_CURSOR/Moga-Candy-Black" "$ICON_DIR/"
   fi
   
-  # Limpieza
-  echo "    -> Eliminando zip original y temporales..."
   rm -rf "$TEMP_CURSOR"
   rm "$CURSOR_ZIP"
 else
-  echo "⚠️  AVISO: No se encontró 'Moga-Candy-Black.zip' junto al script."
+  echo "⚠️  AVISO: No se encontró 'Moga-Candy-Black.zip'. Saltando."
 fi
 
 # ===============================================
 # 6. CONFIGURACIÓN NEMO
 # ===============================================
-echo ">>> 6. Configurando Nemo (Default + Ghostty Action)..."
+echo ">>> 6. Configurando Nemo..."
 xdg-mime default nemo.desktop inode/directory application/x-gnome-saved-search
 
 # Acción: Abrir Ghostty Aquí
@@ -221,16 +207,28 @@ fi
 # 9. ZSH & PLUGINS
 # ===============================================
 echo ">>> 9. Configurando Zsh..."
+
+# 1. Instalar Oh My Zsh
 if [ ! -d "$HOME/.oh-my-zsh" ]; then
+  echo "    -> Instalando Oh My Zsh..."
   sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)" "" --unattended
 fi
 
+# 2. Instalar Powerlevel10k (Tema)
+echo "    -> Clonando Powerlevel10k..."
+# Borramos si existe para asegurar instalación limpia
+rm -rf "${ZSH_CUSTOM:-$HOME/.oh-my-zsh/custom}/themes/powerlevel10k"
+git clone --depth=1 https://github.com/romkatv/powerlevel10k.git "${ZSH_CUSTOM:-$HOME/.oh-my-zsh/custom}/themes/powerlevel10k"
+
+# 3. Plugins adicionales
 ZSH_CUSTOM=${ZSH_CUSTOM:-~/.oh-my-zsh/custom}
 mkdir -p "$ZSH_CUSTOM/plugins"
+echo "    -> Clonando plugins de Zsh..."
 [ ! -d "$ZSH_CUSTOM/plugins/zsh-autosuggestions" ] && git clone https://github.com/zsh-users/zsh-autosuggestions "$ZSH_CUSTOM/plugins/zsh-autosuggestions"
 [ ! -d "$ZSH_CUSTOM/plugins/zsh-syntax-highlighting" ] && git clone https://github.com/zsh-users/zsh-syntax-highlighting.git "$ZSH_CUSTOM/plugins/zsh-syntax-highlighting"
 [ ! -d "$ZSH_CUSTOM/plugins/fast-syntax-highlighting" ] && git clone https://github.com/zdharma-continuum/fast-syntax-highlighting.git "$ZSH_CUSTOM/plugins/fast-syntax-highlighting"
 
+# 4. Pokemon Colorscripts
 if ! command -v pokemon-colorscripts &> /dev/null; then
   git clone https://gitlab.com/phoneybadger/pokemon-colorscripts.git /tmp/pokemon-colorscripts
   pushd /tmp/pokemon-colorscripts > /dev/null
@@ -278,5 +276,29 @@ nvim --headless "+Lazy! sync" +qa
 echo "    -> Instalando herramientas (Mason)..."
 nvim --headless "+MasonInstallAll" +qa
 
-echo ">>> ¡Instalación completada!"
-echo "    Recordatorio: Reinicia el sistema para aplicar temas, iconos y configuraciones."
+# ===============================================
+# 13. RESTAURAR DOTFILES (ZSHRC & P10K)
+# ===============================================
+echo ">>> 13. Restaurando archivos de configuración (.zshrc y .p10k.zsh)..."
+
+# Buscamos los archivos en el directorio donde se ejecuta el script (el repo)
+LOCAL_ZSHRC="$SCRIPT_DIR/.zshrc"
+LOCAL_P10K="$SCRIPT_DIR/.p10k.zsh"
+
+if [ -f "$LOCAL_ZSHRC" ]; then
+    echo "    -> Copiando .zshrc a $HOME..."
+    cp -f "$LOCAL_ZSHRC" "$HOME/.zshrc"
+else
+    echo "⚠️  No se encontró .zshrc en el directorio del script. Verifica tu repo."
+fi
+
+if [ -f "$LOCAL_P10K" ]; then
+    echo "    -> Copiando .p10k.zsh a $HOME..."
+    cp -f "$LOCAL_P10K" "$HOME/.p10k.zsh"
+else
+    echo "⚠️  No se encontró .p10k.zsh en el directorio del script. Verifica tu repo."
+fi
+
+echo ">>> ¡Instalación ULTIMATE completada!"
+echo "    - Reinicia el sistema."
+echo "    - Abre Ghostty y disfruta."
