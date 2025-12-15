@@ -8,14 +8,20 @@ sudo echo "Sudo activado correctamente."
 # Directorio del script para encontrar el zip del cursor
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
-echo ">>> Iniciando instalación ULTIMATE v4 (Fedora + Ghostty + Nemo + WhiteSur + Copyous)..."
+echo ">>> Iniciando instalación ULTIMATE v7 (Fedora + Ghostty + Nemo + Orchis + Tela + Cursor Fix)..."
 
 # ===============================================
 # 1. ACTUALIZACIÓN Y PAQUETES DE SISTEMA
 # ===============================================
 echo ">>> 1. Actualizando e instalando paquetes base..."
 sudo dnf update -y
+
+# Instalación del grupo de desarrollo
+echo "    -> Instalando Development Tools..."
 sudo dnf group install -y development-tools
+
+# Instalamos dependencias específicas (incluyendo fix para Treesitter)
+echo "    -> Instalando dependencias del sistema..."
 sudo dnf install -y \
   git cmake \
   gcc-c++ libstdc++-devel \
@@ -70,7 +76,6 @@ echo "    -> Descargando Copyous en $COPYOUS_DEST..."
 wget -O "$COPYOUS_DEST" "$COPYOUS_URL"
 
 echo "    -> Instalando extensión Copyous..."
-# Solo instalamos, NO habilitamos (requiere reinicio en Wayland)
 gnome-extensions install -f "$COPYOUS_DEST"
 echo "    -> Extensión instalada. Recuerda habilitarla tras reiniciar."
 
@@ -78,42 +83,63 @@ echo "    -> Extensión instalada. Recuerda habilitarla tras reiniciar."
 # 3.5. PREPARACIÓN FIREFOX (Perfil)
 # ===============================================
 echo ">>> 3.5. Inicializando Firefox para generar perfiles..."
-# Abrimos Firefox en background
+# Abrimos Firefox en background para crear la carpeta de perfil
 nohup firefox > /dev/null 2>&1 &
 echo "    -> Firefox iniciado, esperando 10 segundos..."
 sleep 10
 echo "    -> Cerrando TODOS los procesos de Firefox..."
-# Matamos todos los procesos que contengan 'firefox' en su nombre
 pkill -f firefox || true
-# Esperamos un momento para asegurar que se liberan los archivos
 sleep 2
 
 # ===============================================
-# 4. TEMAS WHITESUR (GTK & ICONS)
+# 4. TEMAS: ORCHIS (GTK) & TELA (ICONS)
 # ===============================================
-echo ">>> 4. Instalando WhiteSur (GTK e Iconos)..."
-THEME_TEMP="$HOME/Downloads/WhiteSur_Install"
+echo ">>> 4. Instalando Temas (Orchis & Tela)..."
+THEME_TEMP="$HOME/Downloads/Theme_Install"
 mkdir -p "$THEME_TEMP"
 
-# --- GTK Theme ---
-echo "    -> Clonando WhiteSur GTK..."
-git clone --depth 1 https://github.com/vinceliuice/WhiteSur-gtk-theme "$THEME_TEMP/WhiteSur-gtk-theme"
-pushd "$THEME_TEMP/WhiteSur-gtk-theme" > /dev/null
-  ./install.sh -l -N glassy -t red -c dark -HD
-  sudo ./tweaks.sh -g -f flat -F -c dark -t red
+# --- Orchis GTK Theme ---
+echo "    -> Clonando Orchis GTK Theme..."
+git clone https://github.com/vinceliuice/Orchis-theme.git "$THEME_TEMP/Orchis-theme"
+pushd "$THEME_TEMP/Orchis-theme" > /dev/null
+  
+  # Instalación del tema GTK
+  echo "    -> Aplicando tema Orchis..."
+  ./install.sh -i apple -t red -c dark --tweaks macos dock
+
+  # Configuración de Flatpak
+  echo "    -> Aplicando overrides de Flatpak para temas..."
+  sudo flatpak override --filesystem=xdg-config/gtk-3.0
+  sudo flatpak override --filesystem=xdg-config/gtk-4.0
+
+  # Configuración de Firefox
+  echo "    -> Configurando tema en Firefox..."
+  # Buscar carpetas de perfil que contengan 'default'
+  for profile in $HOME/.mozilla/firefox/*default*; do
+    if [ -d "$profile" ]; then
+      echo "       Aplicando en perfil: $profile"
+      mkdir -p "$profile/chrome"
+      # Copiar contenido de chrome
+      cp -r src/firefox/chrome/* "$profile/chrome/"
+      # Copiar user.js
+      cp src/firefox/configuration/user.js "$profile/"
+    fi
+  done
+
 popd > /dev/null
 
-# --- Icon Theme ---
-echo "    -> Clonando WhiteSur Icons..."
-git clone --depth 1 https://github.com/vinceliuice/WhiteSur-icon-theme "$THEME_TEMP/WhiteSur-icon-theme"
-pushd "$THEME_TEMP/WhiteSur-icon-theme" > /dev/null
-  ./install.sh -t red
+# --- Tela Icon Theme ---
+echo "    -> Clonando Tela Icon Theme..."
+git clone https://github.com/vinceliuice/Tela-icon-theme.git "$THEME_TEMP/Tela-icon-theme"
+pushd "$THEME_TEMP/Tela-icon-theme" > /dev/null
+  echo "    -> Instalando iconos Tela (Red)..."
+  ./install.sh red
 popd > /dev/null
 
 rm -rf "$THEME_TEMP"
 
 # ===============================================
-# 5. CURSOR MOGA-CANDY-BLACK
+# 5. CURSOR MOGA-CANDY-BLACK (CORREGIDO)
 # ===============================================
 echo ">>> 5. Instalando Cursor Moga-Candy-Black..."
 CURSOR_ZIP="$SCRIPT_DIR/Moga-Candy-Black.zip"
@@ -121,8 +147,30 @@ ICON_DIR="$HOME/.local/share/icons"
 mkdir -p "$ICON_DIR"
 
 if [ -f "$CURSOR_ZIP" ]; then
-  echo "    -> Descomprimiendo cursor..."
-  unzip -o "$CURSOR_ZIP" -d "$ICON_DIR"
+  echo "    -> Descomprimiendo cursor en temporal..."
+  # Usamos carpeta temporal para manejar la anidación
+  TEMP_CURSOR="/tmp/moga_cursor_temp"
+  rm -rf "$TEMP_CURSOR"
+  mkdir -p "$TEMP_CURSOR"
+  
+  unzip -o "$CURSOR_ZIP" -d "$TEMP_CURSOR" > /dev/null
+  
+  # La carpeta correcta está anidada: Moga-Candy-Black/Moga-Candy-Black
+  TARGET_DIR="$TEMP_CURSOR/Moga-Candy-Black/Moga-Candy-Black"
+  
+  if [ -d "$TARGET_DIR" ]; then
+      echo "    -> Moviendo carpeta correcta a $ICON_DIR..."
+      rm -rf "$ICON_DIR/Moga-Candy-Black" # Limpieza preventiva
+      mv "$TARGET_DIR" "$ICON_DIR/"
+  else
+      echo "⚠️  Estructura inesperada. Moviendo carpeta raíz..."
+      rm -rf "$ICON_DIR/Moga-Candy-Black"
+      mv "$TEMP_CURSOR/Moga-Candy-Black" "$ICON_DIR/"
+  fi
+  
+  # Limpieza
+  echo "    -> Eliminando zip original y temporales..."
+  rm -rf "$TEMP_CURSOR"
   rm "$CURSOR_ZIP"
 else
   echo "⚠️  AVISO: No se encontró 'Moga-Candy-Black.zip' junto al script."
@@ -220,10 +268,15 @@ sudo rm -rf ghostty-1.2.3 ghostty-1.2.3.tar.gz
 # 12. NEOVIM (PLUGINS + MASON)
 # ===============================================
 echo ">>> 12. Configurando Neovim..."
+
+# Limpiar caché de Treesitter para evitar conflictos
+rm -rf ~/.local/share/nvim/lazy/nvim-treesitter 2>/dev/null || true
+
 echo "    -> Sincronizando plugins (Lazy)..."
 nvim --headless "+Lazy! sync" +qa
+
 echo "    -> Instalando herramientas (Mason)..."
 nvim --headless "+MasonInstallAll" +qa
 
 echo ">>> ¡Instalación completada!"
-echo "    Recordatorio: Reinicia el sistema para aplicar Copyous, Zsh y Temas."
+echo "    Recordatorio: Reinicia el sistema para aplicar temas, iconos y configuraciones."
