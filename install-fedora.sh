@@ -1,10 +1,14 @@
 #!/bin/bash
 set -e # Detener el script si hay errores
 
+# Cachear credenciales de sudo al inicio
+echo ">>> Activando sudo..."
+sudo echo "Sudo activado correctamente."
+
 # Directorio del script para encontrar el zip del cursor
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
-echo ">>> Iniciando instalación ULTIMATE v2 (Fedora + Ghostty + Nemo + WhiteSur + Copyous)..."
+echo ">>> Iniciando instalación ULTIMATE v3 (Fedora + Ghostty + Nemo + WhiteSur + Copyous)..."
 
 # ===============================================
 # 1. ACTUALIZACIÓN Y PAQUETES DE SISTEMA
@@ -25,12 +29,18 @@ sudo dnf install -y \
   java-21-openjdk-devel \
   nemo \
   gnome-tweaks \
+  dnf-plugins-core \
   libgda libgda-sqlite # Dependencias para Copyous
 
 # ===============================================
 # 2. UTILIDADES DE TERMINAL (TUI)
 # ===============================================
 echo ">>> 2. Instalando herramientas TUI..."
+
+# Habilitar COPR para LazyGit
+echo "    -> Habilitando COPR atim/lazygit..."
+sudo dnf copr enable -y atim/lazygit
+
 sudo dnf install -y \
   ripgrep \
   fd-find \
@@ -59,14 +69,20 @@ wget -O "$COPYOUS_DEST" "$COPYOUS_URL"
 echo "    -> Instalando extensión Copyous..."
 # Forzamos la instalación desde el zip descargado
 gnome-extensions install -f "$COPYOUS_DEST"
+echo "    -> Extensión instalada. Recuerda habilitarla tras reiniciar (Reboot requerido en Wayland)."
 
-# Intentamos habilitarla (puede requerir reinicio de sesión en Wayland, pero lo intentamos)
-if gnome-extensions list | grep -q "copyous@boerdereinar.dev"; then
-    echo "    -> Habilitando Copyous..."
-    gnome-extensions enable copyous@boerdereinar.dev
-else
-    echo "⚠️  La extensión se instaló. Si no se habilita ahora, reinicia la sesión y actívala en 'Extensiones'."
-fi
+# ===============================================
+# 3.5. PREPARACIÓN FIREFOX (Perfil)
+# ===============================================
+echo ">>> 3.5. Inicializando Firefox para generar perfiles..."
+# Abrimos Firefox en background, esperamos 10s y lo cerramos para asegurar creación de carpetas
+nohup firefox > /dev/null 2>&1 &
+PID_FX=$!
+echo "    -> Firefox iniciado (PID $PID_FX), esperando 10 segundos..."
+sleep 10
+echo "    -> Cerrando Firefox..."
+kill $PID_FX || true
+wait $PID_FX 2>/dev/null || true
 
 # ===============================================
 # 4. TEMAS WHITESUR (GTK & ICONS)
@@ -206,4 +222,4 @@ echo "    -> Instalando herramientas (Mason)..."
 nvim --headless "+MasonInstallAll" +qa
 
 echo ">>> ¡Instalación completada!"
-echo "    Recordatorio: Si Copyous no aparece activo, reinicia sesión y actívalo desde GNOME Tweaks o Extension Manager."
+echo "    Recordatorio: Reinicia el sistema para habilitar Copyous, aplicar temas y usar Zsh."
