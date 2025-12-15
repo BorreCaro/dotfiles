@@ -15,9 +15,10 @@ echo ">>> Iniciando instalación ULTIMATE v4 (Fedora + Ghostty + Nemo + WhiteSur
 # ===============================================
 echo ">>> 1. Actualizando e instalando paquetes base..."
 sudo dnf update -y
-# sudo dnf group install -y development-tools
+sudo dnf group install -y development-tools
 sudo dnf install -y \
   git cmake \
+  gcc-c++ libstdc++-devel \
   python3 python3-pip \
   unzip wget curl \
   zsh \
@@ -30,6 +31,7 @@ sudo dnf install -y \
   nemo \
   gnome-tweaks \
   dnf-plugins-core \
+  tree-sitter-cli \
   libgda libgda-sqlite # Dependencias para Copyous
 
 # ===============================================
