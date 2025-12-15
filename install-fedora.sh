@@ -11,7 +11,7 @@ echo ">>> Iniciando instalación ULTIMATE v2 (Fedora + Ghostty + Nemo + WhiteSur
 # ===============================================
 echo ">>> 1. Actualizando e instalando paquetes base..."
 sudo dnf update -y
-sudo dnf groupinstall -y "Development Tools"
+sudo dnf group install -y development-tools
 sudo dnf install -y \
   git cmake \
   python3 python3-pip \
