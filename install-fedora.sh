@@ -15,7 +15,7 @@ echo ">>> Iniciando instalación ULTIMATE v4 (Fedora + Ghostty + Nemo + WhiteSur
 # ===============================================
 echo ">>> 1. Actualizando e instalando paquetes base..."
 sudo dnf update -y
-sudo dnf group install -y development-tools
+# sudo dnf group install -y development-tools
 sudo dnf install -y \
   git cmake \
   python3 python3-pip \
@@ -212,7 +212,7 @@ tar -xf ghostty-1.2.3.tar.gz
 cd ghostty-1.2.3
 sudo zig build -p /usr -Doptimize=ReleaseFast -Demit-themes=false
 cd ..
-rm -rf ghostty-1.2.3 ghostty-1.2.3.tar.gz
+sudo rm -rf ghostty-1.2.3 ghostty-1.2.3.tar.gz
 
 # ===============================================
 # 12. NEOVIM (PLUGINS + MASON)
