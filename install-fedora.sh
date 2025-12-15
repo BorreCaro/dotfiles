@@ -8,7 +8,7 @@ sudo echo "Sudo activado correctamente."
 # Directorio del script para encontrar el zip del cursor
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
-echo ">>> Iniciando instalación ULTIMATE v3 (Fedora + Ghostty + Nemo + WhiteSur + Copyous)..."
+echo ">>> Iniciando instalación ULTIMATE v4 (Fedora + Ghostty + Nemo + WhiteSur + Copyous)..."
 
 # ===============================================
 # 1. ACTUALIZACIÓN Y PAQUETES DE SISTEMA
@@ -50,7 +50,8 @@ sudo dnf install -y \
   fastfetch \
   lazygit \
   bat \
-  tldr
+  tldr \
+  procps-ng # Asegura tener pkill
 
 # ===============================================
 # 3. APPS FLATPAK Y EXTENSIONES
@@ -67,22 +68,23 @@ echo "    -> Descargando Copyous en $COPYOUS_DEST..."
 wget -O "$COPYOUS_DEST" "$COPYOUS_URL"
 
 echo "    -> Instalando extensión Copyous..."
-# Forzamos la instalación desde el zip descargado
+# Solo instalamos, NO habilitamos (requiere reinicio en Wayland)
 gnome-extensions install -f "$COPYOUS_DEST"
-echo "    -> Extensión instalada. Recuerda habilitarla tras reiniciar (Reboot requerido en Wayland)."
+echo "    -> Extensión instalada. Recuerda habilitarla tras reiniciar."
 
 # ===============================================
 # 3.5. PREPARACIÓN FIREFOX (Perfil)
 # ===============================================
 echo ">>> 3.5. Inicializando Firefox para generar perfiles..."
-# Abrimos Firefox en background, esperamos 10s y lo cerramos para asegurar creación de carpetas
+# Abrimos Firefox en background
 nohup firefox > /dev/null 2>&1 &
-PID_FX=$!
-echo "    -> Firefox iniciado (PID $PID_FX), esperando 10 segundos..."
+echo "    -> Firefox iniciado, esperando 10 segundos..."
 sleep 10
-echo "    -> Cerrando Firefox..."
-kill $PID_FX || true
-wait $PID_FX 2>/dev/null || true
+echo "    -> Cerrando TODOS los procesos de Firefox..."
+# Matamos todos los procesos que contengan 'firefox' en su nombre
+pkill -f firefox || true
+# Esperamos un momento para asegurar que se liberan los archivos
+sleep 2
 
 # ===============================================
 # 4. TEMAS WHITESUR (GTK & ICONS)
@@ -222,4 +224,4 @@ echo "    -> Instalando herramientas (Mason)..."
 nvim --headless "+MasonInstallAll" +qa
 
 echo ">>> ¡Instalación completada!"
-echo "    Recordatorio: Reinicia el sistema para habilitar Copyous, aplicar temas y usar Zsh."
+echo "    Recordatorio: Reinicia el sistema para aplicar Copyous, Zsh y Temas."
