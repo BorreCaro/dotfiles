@@ -8,6 +8,8 @@ sudo echo "Sudo activado correctamente."
 # Directorio del script para encontrar archivos locales (zip, configs)
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
+
+
 echo ">>> Iniciando instalación ULTIMATE v8 (Fedora + Ghostty + Nemo + Orchis + Tela + P10K Fix)..."
 
 # ===============================================
@@ -60,7 +62,9 @@ sudo dnf install -y \
   bat \
   tldr \
   procps-ng
-
+# 2.1 Copiar todo el contenido de .config/ (nvim, ghostty, etc.) a ~/.config/
+echo "    -> Copiando .config/ a ~/.config/ (Necesario para Nvim)..."
+cp -rf "$SCRIPT_DIR"/.config/* "$HOME"/.config/
 # ===============================================
 # 3. APPS FLATPAK Y EXTENSIONES
 # ===============================================
@@ -271,7 +275,7 @@ echo ">>> 12. Configurando Neovim..."
 rm -rf ~/.local/share/nvim/lazy/nvim-treesitter 2>/dev/null || true
 
 echo "    -> Sincronizando plugins (Lazy)..."
-nvim --headless "+Lazy! sync" +qa
+nvim "+Lazy! sync" +qa
 
 echo "    -> Instalando herramientas (Mason)..."
 nvim --headless "+MasonInstallAll" +qa
