@@ -278,7 +278,7 @@ echo "    -> Sincronizando plugins (Lazy)..."
 nvim "+Lazy! sync" +qa
 
 echo "    -> Instalando herramientas (Mason)..."
-nvim --headless "+MasonInstallAll" +qa
+nvim "+MasonInstallAll" +qa
 
 # ===============================================
 # 13. RESTAURAR DOTFILES (ZSHRC & P10K)
