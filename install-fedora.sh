@@ -275,7 +275,7 @@ echo ">>> 12. Configurando Neovim..."
 rm -rf ~/.local/share/nvim/lazy/nvim-treesitter 2>/dev/null || true
 
 echo "    -> Sincronizando plugins (Lazy)..."
-nvim "+Lazy! sync" +qa
+nvim "+Lazy sync" +qa
 
 echo "    -> Instalando herramientas (Mason)..."
 nvim "+MasonInstallAll" +qa
