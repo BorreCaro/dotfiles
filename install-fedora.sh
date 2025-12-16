@@ -107,7 +107,7 @@ git clone https://github.com/vinceliuice/Orchis-theme.git "$THEME_TEMP/Orchis-th
 pushd "$THEME_TEMP/Orchis-theme" > /dev/null
   echo "    -> Aplicando tema Orchis..."
   ./install.sh -i apple -t red -c dark --tweaks macos dock
-  ./install.sh -c dark -t red -l
+  ./install.sh -c dark -t red -l -tweaks macos
 
   echo "    -> Aplicando overrides de Flatpak..."
   sudo flatpak override --filesystem=xdg-config/gtk-3.0
