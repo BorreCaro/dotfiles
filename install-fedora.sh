@@ -275,8 +275,8 @@ echo ">>> 12. Configurando Neovim..."
 # Limpiar caché de Treesitter para evitar conflictos
 rm -rf ~/.local/share/nvim/lazy/nvim-treesitter 2>/dev/null || true
 
-echo "    -> Sincronizando plugins (Lazy)..."
-nvim "+Lazy sync" +qa
+# echo "    -> Sincronizando plugins (Lazy)..."
+# nvim "+Lazy sync" +qa
 
 echo "    -> Instalando herramientas (Mason)..."
 nvim "+MasonInstallAll" +qa
